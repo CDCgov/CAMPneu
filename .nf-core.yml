@@ -34,9 +34,9 @@ lint:
     - report_comment
   files_exist:
     - CODE_OF_CONDUCT.md
-    - assets/nf-core-campneu_logo_light.png
-    - docs/images/nf-core-campneu_logo_light.png
-    - docs/images/nf-core-campneu_logo_dark.png
+    - assets/nf-core-CAMPneu_logo_light.png
+    - docs/images/nf-core-CAMPneu_logo_light.png
+    - docs/images/nf-core-CAMPneu_logo_dark.png
     - .github/ISSUE_TEMPLATE/config.yml
     - .github/workflows/awstest.yml
     - .github/workflows/awsfulltest.yml

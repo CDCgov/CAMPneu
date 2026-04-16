@@ -1,5 +1,5 @@
 //
-// Subworkflow with functionality specific to the pslb_mp/campneu pipeline
+// Subworkflow with functionality specific to the CDCgov/CAMPneu pipeline
 //
 
 /*

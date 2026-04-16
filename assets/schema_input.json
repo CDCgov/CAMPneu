@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/pslb_mp/campneu/master/assets/schema_input.json",
-    "title": "pslb_mp/campneu pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/CDCgov/CAMPneu/master/assets/schema_input.json",
+    "title": "CDCgov/CAMPneu pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {

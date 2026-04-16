@@ -1,6 +1,6 @@
 {
-    "name": "pslb_mp/campneu",
-    "homePage": "https://github.com/pslb_mp/campneu",
+    "name": "CDCgov/CAMPneu",
+    "homePage": "https://github.com/CDCgov/CAMPneu",
     "repos": {
         "https://github.com/nf-core/modules.git": {
             "modules": {
