@@ -1,0 +1,54 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "prefetch"
+description: Downloads vertical database file for SRA-accession from NCBI
+keywords:
+  - sra
+  - download
+  - database
+  - ncbi
+tools:
+  - "sra-tools prefetch":
+      description: "Downloads all necessary files for extracting FASTQ files from SRA-accessions"
+      homepage: "https://github.com/ncbi/sra-tools"
+      documentation: "https://github.com/ncbi/sra-tools/wiki/08.-prefetch-and-fasterq-dump"
+      tool_dev_url: ""
+      doi: ""
+      licence: null
+      identifier: null
+
+input:
+  - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - sra_id:
+        type: value
+        description: SRA-accession
+
+output:
+  fastq:
+    - - meta:
+        type: map
+        description: |
+          Groovy Map containing sample information
+          e.g. `[ id:'sample1' ]`
+    - "${sra_id[0]}/":
+        type: file
+        description: Downloaded SRA-accession
+        pattern: "*.sra"
+        ontologies:
+          - edam: "http://edamontology.org/format_3699" # VDB
+  versions:
+    - versions.yml:
+        type: file
+        description: File containing software versions
+        pattern: "versions.yml"
+        ontologies:
+          - edam: http://edamontology.org/format_3750 # YAML
+
+authors:
+  - "@Ethan-Hetrick"
+maintainers:
+  - "@kitkatm16"
+  - "@jennahamlin"
