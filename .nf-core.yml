@@ -46,10 +46,6 @@ lint:
     - assets/sendmail_template.txt
     - assets/email_template.txt
     - ro-crate-metadata.json
-  template_strings:
-    - assets/kmorin_campneu_sra-human-scrubber.sif
-  merge_markers:
-    - assets/kmorin_campneu_sra-human-scrubber.sif
   readme:
     - nextflow_badge
 

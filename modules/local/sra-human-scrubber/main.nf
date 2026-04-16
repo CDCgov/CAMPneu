@@ -8,7 +8,7 @@ process SRA_HUMAN_SCRUBBER {
     // container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
     //     'https://community-cr-prod.seqera.io/docker/registry/v2/blobs/sha256/0c/0c06633f1ce36c4cfb4d9e0f59cd15ce38702decda24c425ca8ed0f8f516aa29/data' :
     //     'community.wave.seqera.io/library/sra-human-scrubber:2.2.1--147fe7682c448f16' }"
-    container = "${projectDir}/assets/kmorin_campneu_sra-human-scrubber.sif"
+    container = "library://kmorin/campneu/sra-human-scrubber:2.2.1"
 
     input:
     tuple val(meta), path(reads)
