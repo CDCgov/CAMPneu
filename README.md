@@ -59,7 +59,8 @@ Now, you can run the pipeline using:
 nextflow run CDCgov/CAMPneu \
    -profile <docker/singularity/.../institute> \
    --input samplesheet.csv \
-   --outdir <OUTDIR>
+   --outdir <OUTDIR> \
+   --kraken2db kraken2_Standard/ \
 ```
 
 > [!WARNING]
