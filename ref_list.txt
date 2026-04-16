@@ -1,0 +1,2 @@
+https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_000027345.1_ASM2734v1_genomic.fna
+https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna
