@@ -1,20 +1,19 @@
 # CDCgov/CAMPneu
 
-[![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)
+<!--  Uncomment when implemented [![nf-test](https://img.shields.io/badge/unit_tests-nf--test-337ab7.svg)](https://www.nf-test.com)   -->
 
 [![Nextflow](https://img.shields.io/badge/version-%E2%89%A525.04.0-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
 [![nf-core template version](https://img.shields.io/badge/nf--core_template-3.5.1-green?style=flat&logo=nfcore&logoColor=white&color=%2324B064&link=https%3A%2F%2Fnf-co.re)](https://github.com/nf-core/tools/releases/tag/3.5.1)
-[![run with conda](http://img.shields.io/badge/run%20with-conda-3EB049?labelColor=000000&logo=anaconda)](https://docs.conda.io/en/latest/)
 [![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
 [![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 [![Launch on Seqera Platform](https://img.shields.io/badge/Launch%20%F0%9F%9A%80-Seqera%20Platform-%234256e7)](https://cloud.seqera.io/launch?pipeline=https://github.com/CDCgov/CAMPneu)
 
 ## Introduction
 
-**CDCgov/CAMPneu** is a bioinformatics pipeline that analyzes Mycoplasma pneumoniae CIDT and isolate WGS sequencing data. It performs preprocessing on the reads, mapping to an Mp reference, assembly, species identification and contamination characterization, and variant calling for antibiotic resistance characterization.
+**CDCgov/CAMPneu** is a bioinformatics pipeline that analyzes Mycoplasma pneumoniae culture independent and cultured isolate WGS sequencing data. It performs preprocessing on the reads, mapping to an Mp reference, assembly, P1 typing, sequence typing, and variant calling for antibiotic resistance characterization.
 
-<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core
-     workflows use the "tube map" design for that. See https://nf-co.re/docs/guidelines/graphic_design/workflow_diagrams#examples for examples.   -->
+<center><img src="assets/campneu_workflow.png"/></center>
+
 Default analysis steps:  
 
 1. Adaptor trimming and quality filtering ([`fastp`]())
@@ -23,7 +22,7 @@ Default analysis steps:
 4. Determine the depth of coverage of each position in the reference ([`Samtools depth`])
 5. Perform De novo assembly ([`Unicycler`]())
 6. Generate assembly quality metrics ([`QUAST`]())
-7. Perform read level species identification ([`Kraken2`]())
+7. Perform contamination check ([`Kraken2`]())
 8. Determine average nucleotide identity between sample assemblies and P1 type references ([`FastANI`]())
 9. Perform multilocus sequence typing with assemblies ([`mlst`]())
 10. Generate index of reference genome ([`Samtools faidx`]())
@@ -36,21 +35,21 @@ Default analysis steps:
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.
-     Explain what rows and columns represent. For instance (please edit as appropriate):
+
 
 First, prepare a samplesheet with your input data that looks as follows:
 
 `samplesheet.csv`:
 
 ```csv
-sample,fastq_1,fastq_2
-CONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz
+sample,fastq_1,fastq_2,fasta,sra
+AEG588A1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,,
+AEG588B2,,,AEG588B2_contigs.fa,
+SRR32566410,,,,SRR32566410
 ```
 
-Each row represents a fastq file (single-end) or a pair of fastq files (paired end).
+Each row represents a pair of fastq files (paired end), or an assembly, or a pair of fastq files and an assembly, or an SRA SRR ID.
 
--->
 
 Now, you can run the pipeline using:
 
@@ -72,7 +71,10 @@ CDCgov/CAMPneu was originally written by Kathryn Morin.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
-<!-- TODO nf-core: If applicable, make list of people who have also contributed -->
+Eungi Yang
+Yuan Li
+Mahika Kadam
+Will Overholt
 
 ## Contributions and Support
 
