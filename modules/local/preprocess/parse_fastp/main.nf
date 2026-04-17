@@ -17,7 +17,7 @@ process PARSE_FASTP_REPORTS {
     script:
     """
 
-    python3 parse_filter.py -i $json_file -o $params.outdir
+    template parse_filter.py -i $json_file -o $params.outdir
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
