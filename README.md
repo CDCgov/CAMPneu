@@ -42,7 +42,7 @@ First, prepare a samplesheet with your input data that looks as follows:
 `samplesheet.csv`:
 
 ```csv
-sample,fastq_1,fastq_2,fasta,sra
+sample,fastq_1,fastq_2,fasta,sra_accession
 AEG588A1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz,,
 AEG588B2,,,AEG588B2_contigs.fa,
 SRR32566410,,,,SRR32566410
