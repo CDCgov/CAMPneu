@@ -48,12 +48,21 @@ AEG588B2,,,AEG588B2_contigs.fa,
 SRR32566410,,,,SRR32566410
 ```
 
-Each row represents a pair of fastq files (paired end), or an assembly, or a pair of fastq files and an assembly, or an SRA SRR ID.
+Each row represents a pair of fastq files (paired end), or an assembly, or a pair of fastq files and an assembly, or an SRA SRR ID.  
+
+The Kraken2 Standard database can be downloaded from [here](https://benlangmead.github.io/aws-indexes/k2)  
+The AMRFinderPlus database can be downloaded using the following commands:  
+(requires `wget` and `BLAST+`)
+```bash
+wget -e robots=off -r -np -nH --cut-dirs=6 -R index.html \
+    https://ftp.ncbi.nlm.nih.gov/pathogen/Antimicrobial_resistance/AMRFinderPlus/database/4.2/2026-03-24.1/ 
+
+makeblastdb -in AMRProt.fa -dbtype 'prot' -out AMRProt.fa
+```
 
 
-Now, you can run the pipeline using:
+Now, you can run the pipeline using:  
 
-<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->
 
 ```bash
 nextflow run CDCgov/CAMPneu \
@@ -61,6 +70,7 @@ nextflow run CDCgov/CAMPneu \
    --input samplesheet.csv \
    --outdir <OUTDIR> \
    --kraken2db kraken2_Standard/ \
+   --amrfinderplus_db AMRFinderPlus_db/ \
 ```
 
 > [!WARNING]
