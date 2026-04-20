@@ -72,7 +72,8 @@
             "properties": {
                 "reference_genome": {
                     "type": "string",
-                    "description": "Path to M129 reference genome FASTA file"
+                    "description": "Path to M129 reference genome FASTA file",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_000027345.1_ASM2734v1_genomic.fna"
                 },
                 "ref_name": {
                     "type": "string",
@@ -81,15 +82,18 @@
                 },
                 "ref_annotation": {
                     "type": "string",
-                    "description": "Path to M129 reference genome GFF file"
+                    "description": "Path to M129 reference genome GFF file",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_000027345.1_genomic.gff"
                 },
                 "ref_list": {
                     "type": "string",
-                    "description": "Path to list of P1 type reference paths"
+                    "description": "Path to list of P1 type reference paths",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/ref_list.txt"
                 },
                 "ref_type": {
                     "type": "string",
-                    "description": "Path to file with reference names with respective P1 types"
+                    "description": "Path to file with reference names with respective P1 types",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/ref_type.csv"
                 }
             },
             "required": ["reference_genome", "ref_annotation", "ref_list", "ref_type"]
@@ -102,7 +106,8 @@
             "properties": {
                 "human_db": {
                     "type": "string",
-                    "description": "Path to sra-human-scrubber database"
+                    "description": "Path to sra-human-scrubber database",
+                    "default": "https://ftp.ncbi.nlm.nih.gov/sra/dbs/human_filter/human_filter.db.20250916v2"
                 }
             }
         },
@@ -151,8 +156,7 @@
                     "type": "string",
                     "description": "Path to mlst PubMLST allele database"
                 }
-            },
-            "required": ["blastdb", "datadir"]
+            }
         },
         "variant_calling_options": {
             "title": "Variant calling options",
@@ -162,7 +166,8 @@
             "properties": {
                 "target_bed": {
                     "type": "string",
-                    "description": "Full path to BED file containing target regions in reference to look for variants in samples"
+                    "description": "Full path to BED file containing target regions in reference to look for variants in samples",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/snp_ref1.bed"
                 }
             }
         },
@@ -366,5 +371,11 @@
         {
             "$ref": "#/$defs/generic_options"
         }
-    ]
+    ],
+    "properties": {
+        "type2": {
+            "type": "string",
+            "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna"
+        }
+    }
 }
