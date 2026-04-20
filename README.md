@@ -12,6 +12,9 @@
 
 **CDCgov/CAMPneu** is a bioinformatics pipeline that analyzes Mycoplasma pneumoniae culture independent and cultured isolate WGS sequencing data. It performs preprocessing on the reads, mapping to an Mp reference, assembly, P1 typing, sequence typing, and variant calling for antibiotic resistance characterization.
 
+>[!NOTE]
+>This repository is still under development and does not have complete documentation
+
 <center><img src="assets/campneu_workflow.png"/></center>
 
 Default analysis steps:  
