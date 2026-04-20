@@ -10,6 +10,8 @@ process FASTANI {
     input:
     tuple val(meta), path(query)
     path reference
+    path type1  //bypass rawusercontent issues
+    path type2  //bypass rawusercontent issues
     val querylist
     val referencelist
 

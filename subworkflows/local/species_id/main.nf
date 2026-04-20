@@ -60,6 +60,8 @@ workflow SPECIES_ID {
     FASTANI (
         ch_contigs,
         "${params.ref_list}",
+        "${params.reference_genome}",
+        "${params.type2}",
         false,
         true
     )
