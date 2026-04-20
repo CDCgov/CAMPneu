@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    pslb_mp/campneu
+    CDCgov/CAMPneu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    Github : https://github.com/pslb_mp/campneu
+    Github : https://github.com/CDCgov/CAMPneu
 ----------------------------------------------------------------------------------------
 */
 
@@ -25,7 +25,7 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_camp
 //
 // WORKFLOW: Run main analysis pipeline depending on type of input
 //
-workflow PSLB_MP_CAMPNEU {
+workflow CDCGOV_CAMPNEU {
 
     take:
     samplesheet // channel: samplesheet read in from --input
@@ -68,7 +68,7 @@ workflow {
     //
     // WORKFLOW: Run main workflow
     //
-    PSLB_MP_CAMPNEU (
+    CDCGOV_CAMPNEU (
         PIPELINE_INITIALISATION.out.samplesheet
     )
     //
@@ -77,7 +77,7 @@ workflow {
     PIPELINE_COMPLETION (
         params.outdir,
         params.monochrome_logs,
-        PSLB_MP_CAMPNEU.out.multiqc_report
+        CDCGOV_CAMPNEU.out.multiqc_report
     )
 }
 
