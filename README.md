@@ -111,6 +111,15 @@ This pipeline uses code and infrastructure developed and maintained by the [nf-c
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
 
+## SHARE IT Act Compliance
+```
+Organization: NCIRD
+contact email: shareit@cdc.gov
+exemption status: NA
+exemption justification: NA
+description fields: Nextflow workflow for the analysis of Mycoplasma pneumoniae
+```
+
 ## Public Domain Standard Notice
 This repository constitutes a work of the United States Government and is not
 subject to domestic copyright protection under 17 USC § 105. This repository is in
