@@ -1,2 +1,2 @@
-"{projectDir}/assets/GCF_000027345.1_ASM2734v1_genomic.fna"
-"{projectDir}/assets/GCF_001272835.1_ASM127283v1_genomic.fna
+GCF_000027345.1_ASM2734v1_genomic.fna
+GCF_001272835.1_ASM127283v1_genomic.fna
