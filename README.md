@@ -82,9 +82,9 @@ CDCgov/CAMPneu was originally written by Kathryn Morin.
 
 We thank the following people for their extensive assistance in the development of this pipeline:
 
-Eungi Yang
-Yuan Li
-Mahika Kadam
+Eungi Yang  
+Yuan Li  
+Mahika Kadam  
 Will Overholt
 
 ## Contributions and Support
