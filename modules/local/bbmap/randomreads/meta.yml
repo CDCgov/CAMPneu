@@ -1,0 +1,66 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/meta-schema.json
+name: "bbmap_randomreads"
+description: write your description here
+keywords:
+  - sort
+  - example
+  - genomics
+tools:
+  - "bbmap":
+      description: "BBMap is a short read aligner, as well as various other bioinformatic
+        tools."
+      homepage: "https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide"
+      documentation: "https://jgi.doe.gov/data-and-tools/bbtools/bb-tools-user-guide"
+      tool_dev_url: "https://sourceforge.net/projects/bbmap"
+      doi: ""
+      licence: ["BSD-3-clause-LBNL"]
+      identifier: null
+
+input:
+  - - meta:
+        type: map
+        description: Groovy Map containing sample information. e.g. `[
+          id:'sample1' ]`
+    - input:
+        type: file
+        description: ""
+        pattern: ""
+        ontologies:
+          - edam: ""
+output:
+  output:
+    - - meta:
+          type: map
+          description: Groovy Map containing sample information. e.g. `[
+            id:'sample1' ]`
+      - "*":
+          type: file
+          description: ""
+          pattern: ""
+          ontologies:
+            - edam: ""
+  versions_bbmap:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - bbmap:
+          type: string
+          description: The name of the tool
+      - bbmap --version:
+          type: eval
+          description: The expression to obtain the version of the tool
+topics:
+  versions:
+    - - ${task.process}:
+          type: string
+          description: The name of the process
+      - bbmap:
+          type: string
+          description: The name of the tool
+      - bbmap --version:
+          type: eval
+          description: The expression to obtain the version of the tool
+authors:
+  - "@kitkatm16"
+maintainers:
+  - "@kitkatm16"

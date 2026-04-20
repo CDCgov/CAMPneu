@@ -1,0 +1,71 @@
+repository_type: pipeline
+
+nf_core_version: 3.5.1
+
+lint:
+  files_unchanged:
+    - .github/ISSUE_TEMPLATE/bug_report.yml
+    - .github/ISSUE_TEMPLATE/config.yml
+    - .github/ISSUE_TEMPLATE/feature_request.yml
+    - .github/PULL_REQUEST_TEMPLATE.md
+    - .github/workflows/branch.yml
+    - .github/workflows/linting_comment.yml
+    - .github/workflows/linting.yml
+    - .github/CONTRIBUTING.md
+    - .github/.dockstore.yml
+    - .github/CONTRIBUTING.md
+    - .prettierignore
+    - CODE_OF_CONDUCT.md
+    - assets/nf-core-campneu_logo_light.png
+    - docs/images/nf-core-campneu_logo_light.png
+    - docs/images/nf-core-campneu_logo_dark.png
+    - .github/ISSUE_TEMPLATE/bug_report.yml
+    - .github/CONTRIBUTING.md
+    - .github/PULL_REQUEST_TEMPLATE.md
+    - assets/email_template.txt
+    - docs/README.md
+    - .prettierignore
+    - .prettierignore
+    - .prettierignore
+  nextflow_config:
+    - manifest.name
+    - manifest.homePage
+  multiqc_config:
+    - report_comment
+  files_exist:
+    - CODE_OF_CONDUCT.md
+    - assets/nf-core-CAMPneu_logo_light.png
+    - docs/images/nf-core-CAMPneu_logo_light.png
+    - docs/images/nf-core-CAMPneu_logo_dark.png
+    - .github/ISSUE_TEMPLATE/config.yml
+    - .github/workflows/awstest.yml
+    - .github/workflows/awsfulltest.yml
+    - conf/igenomes.config
+    - conf/igenomes_ignored.config
+    - assets/email_template.html
+    - assets/sendmail_template.txt
+    - assets/email_template.txt
+    - ro-crate-metadata.json
+  readme:
+    - nextflow_badge
+
+template:
+  org: CDCgov
+  name: CAMPneu
+  description: 'Comprehensive Analysis of Mycoplasma pneumoniae '
+  author: Kathryn Morin
+  version: 2.0.0dev
+  force: true
+  outdir: .
+  skip_features:
+    - igenomes
+    - fastqc
+    - seqera_platform
+    - gpu
+    - codespaces
+    - vscode
+    - rocrate
+    - email
+    - adaptivecard
+    - slackreport
+  is_nfcore: false
