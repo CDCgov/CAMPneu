@@ -94,9 +94,14 @@
                     "type": "string",
                     "description": "Path to file with reference names with respective P1 types",
                     "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/ref_type.csv"
+                },
+                "type2": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna",
+                    "description": "Path to type2 reference"
                 }
             },
-            "required": ["reference_genome", "ref_annotation", "ref_list", "ref_type"]
+            "required": ["reference_genome", "ref_name", "ref_annotation", "ref_list", "ref_type", "type2"]
         },
         "sra_human_scrubber_options": {
             "title": "sra-human-scrubber options",
@@ -156,10 +161,11 @@
                     "type": "string",
                     "description": "Path to mlst PubMLST allele database"
                 }
-            }
+            },
+            "required": ["blastdb", "db_name", "datadir"]
         },
-        "variant_calling_options": {
-            "title": "Variant calling options",
+        "freebayes_options": {
+            "title": "FreeBayes options",
             "type": "object",
             "description": "input and options for performing variant calling with",
             "default": "",
@@ -169,7 +175,24 @@
                     "description": "Full path to BED file containing target regions in reference to look for variants in samples",
                     "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/snp_ref1.bed"
                 }
-            }
+            },
+            "required": ["target_bed"]
+        },
+        "snpeff_options": {
+            "title": "SnpEff options",
+            "type": "object",
+            "description": "input and options for genetic variant annotation with SnpEff",
+            "default": "",
+            "properties": {
+                "snpeff_db": {
+                    "type": "string"
+                },
+                "snpeff_db_name": {
+                    "type": "string",
+                    "default": "Mycoplasma_pneumoniae_m129_gca_000027345"
+                }
+            },
+            "required": ["snpeff_db", "snpeff_db_name"]
         },
         "amrfinderplus_options": {
             "title": "AMRFinderPlus options",
@@ -357,7 +380,10 @@
             "$ref": "#/$defs/mlst_options"
         },
         {
-            "$ref": "#/$defs/variant_calling_options"
+            "$ref": "#/$defs/freebayes_options"
+        },
+        {
+            "$ref": "#/$defs/snpeff_options"
         },
         {
             "$ref": "#/$defs/amrfinderplus_options"
@@ -371,14 +397,5 @@
         {
             "$ref": "#/$defs/generic_options"
         }
-    ],
-    "properties": {
-        "type2": {
-            "type": "string",
-            "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna"
-        },
-        "snpeff_db": {
-            "type": "string"
-        }
-    }
+    ]
 }

@@ -3,7 +3,7 @@
 //
 include { SAMTOOLS_FAIDX                       } from '../../../modules/nf-core/samtools/faidx/main'
 include { FREEBAYES                            } from '../../../modules/local/freebayes/main'
-include { SNPEFF_SNPEFF                        } from '../../../modules/nf-core/snpeff/snpeff/main'
+include { SNPEFF_SNPEFF                        } from '../../../modules/local/snpeff/snpeff/main'
 include { SNP_SUMMARY                          } from '../../../modules/local/snp_summary/main'
 include { AMRFINDERPLUS_RUN                    } from '../../../modules/local/amrfinderplus/run/main'
 
