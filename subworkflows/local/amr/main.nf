@@ -51,6 +51,7 @@ workflow AMR {
     //
     SNPEFF_SNPEFF (
         FREEBAYES.out.vcf,
+        "${params.snpeff_db_name}",
         "${params.snpeff_db}",
         [[],[]]
     )
