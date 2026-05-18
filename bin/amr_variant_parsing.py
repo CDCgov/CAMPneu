@@ -158,17 +158,18 @@ def check_complex(results,file,hgt_defaults,WG_defaults,AA):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
                         prog='python3 amr_variant_parsing.py',
-                        description='This program performs the variant analysis for GC AMR genes based on Snippy output')
-        
-    parser.add_argument('-w','--whole_genome', type=str, required=True, help='Full path of TAB delimited variant output of whole genome from Snippy')
-    parser.add_argument('-t','--hgt', type=str, required=True, help='Full path of TAB delimited variant output of just horizonally transferred genes from Snippy')
-    parser.add_argument('-c','--cov', type=str, required=True, help='Full path of per AMR gene coverage (average depth) report for input sample')
-    parser.add_argument('-s','--depths', type=str, nargs=17, required=True, help='paths of files containing per position depths of genes in FA19')
-    parser.add_argument('-n','--name', type=str, required=True, help='Sample name')
-    parser.add_argument('-o','--out_path', type=str, required=True, help='path of output directory')
-    parser.add_argument('-d','--defaults', type=str, required=True, help='path of default AMR genes file')
-    parser.add_argument('-f','--fields', type=str, required=True, help='path of column order file')
-    parser.add_argument('-gs','--gene_strands', type=str, required=True, help='path to tsv file containing strand each gene is on')
+                        description='This program performs the variant analysis for Mp relative to M129 using a SnpEff annotated VCF')
+    parser.add_argument('-i','--input',type=str,required=True,help='Full path to annotated VCF file from SnpEff (.ann.vcf)')
+    parser.add_argument('')
+    # parser.add_argument('-w','--whole_genome', type=str, required=True, help='Full path of TAB delimited variant output of whole genome from Snippy')
+    # parser.add_argument('-t','--hgt', type=str, required=True, help='Full path of TAB delimited variant output of just horizonally transferred genes from Snippy')
+    # parser.add_argument('-c','--cov', type=str, required=True, help='Full path of per AMR gene coverage (average depth) report for input sample')
+    # parser.add_argument('-s','--depths', type=str, nargs=17, required=True, help='paths of files containing per position depths of genes in FA19')
+    # parser.add_argument('-n','--name', type=str, required=True, help='Sample name')
+    # parser.add_argument('-o','--out_path', type=str, required=True, help='path of output directory')
+    # parser.add_argument('-d','--defaults', type=str, required=True, help='path of default AMR genes file')
+    # parser.add_argument('-f','--fields', type=str, required=True, help='path of column order file')
+    # parser.add_argument('-gs','--gene_strands', type=str, required=True, help='path to tsv file containing strand each gene is on')
     
         
     args = parser.parse_args()
