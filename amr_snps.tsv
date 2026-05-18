@@ -7,11 +7,11 @@ MPN_RS00435-1074	NC_000912.1	MPN_080	MPN_RS00435	Macrolide	Resistant	NA	1074	T	I
 MPN_RS00525-119277	NC_000912.1	16S rRNA	MPN_RS00525	Tetracycline	Resistant	119277	NA	T	C
 MPN_RS00525-119482	NC_000912.1	16S rRNA	MPN_RS00525	Tetracycline	Resistant	119482	NA	G	A
 MPN_RS00525-119486	NC_000912.1	16S rRNA	MPN_RS00525	Tetracycline	Resistant	119486	NA	A	T
-	NC_000912.1	gyrA	MPN_RS00020	Fluoroquinolone	Resistant	NA	99	D	N
-	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	433	D	N
-	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	464	R	K
-	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	483	E	G
-	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	81	G	C
-	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	83	A	V
-	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	87	D	N
-	NC_000912.1	parE	MPN_RS00695	Fluoroquinolone	Resistant	NA	449	P	S
+MPN_RS00020-99	NC_000912.1	gyrA	MPN_RS00020	Fluoroquinolone	Resistant	NA	99	D	N
+MPN_RS00015-433	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	433	D	N
+MPN_RS00015-464	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	464	R	K
+MPN_RS00015-483	NC_000912.1	gyrB	MPN_RS00015	Fluoroquinolone	Resistant	NA	483	E	G
+MPN_RS00700-81	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	81	G	C
+MPN_RS00700-83	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	83	A	V
+MPN_RS00700-87	NC_000912.1	parC	MPN_RS00700	Fluoroquinolone	Resistant	NA	87	D	N
+MPN_RS00695-449	NC_000912.1	parE	MPN_RS00695	Fluoroquinolone	Resistant	NA	449	P	S
