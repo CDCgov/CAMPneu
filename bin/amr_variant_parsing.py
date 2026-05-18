@@ -21,15 +21,15 @@ def parse_tsv(file_path,key):
                 header = line.strip().split('\t')
                 first = False
                 try:
-                    mpn = fields.index(key)
+                    key_index = fields.index(key)
                 except ValueError:
                     print(f"{key} column not found in {file_path}")
                     exit()
             fields = line.strip().split('\t')
-            contents[fields[mpn]] = {}
+            contents[fields[key_index]]] = {}
             for col in range(len(header)):
-                if col != mpn:
-                    contents[fields[mpn]][header[col]] = fields[col]
+                if col != key_index:
+                    contents[fields[key_index]][header[col]] = fields[col]
     return contents
 
 ### Read AMR_defaults.tsv into a dictionary ###
