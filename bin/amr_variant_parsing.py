@@ -199,3 +199,6 @@ if __name__ == "__main__":
     genes_path = args.genes
     snps_path = args.snps
     out = args.out_path
+
+    amr_genes = parse_tsv(genes_path,"MPN")
+    amr_positions = parse_tsv(snps_path,"Name")
