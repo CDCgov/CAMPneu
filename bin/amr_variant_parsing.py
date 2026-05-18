@@ -4,6 +4,34 @@ import argparse
 import re
 import os
 
+### Read input TSV into dictionary ###
+def parse_tsv(file_path,key):
+    '''
+    input:
+        file_path - path to input TSV file (str)
+        key - column to use as keys (str)
+    output:
+        contents - dictionary with specified key as keys and other columns as values (dict)
+    '''
+    contents = {}
+    with open(file_path) as file:
+        first = True
+        for line in file:
+            if first:
+                header = line.strip().split('\t')
+                first = False
+                try:
+                    mpn = fields.index(key)
+                except ValueError:
+                    print(f"{key} column not found in {file_path}")
+                    exit()
+            fields = line.strip().split('\t')
+            contents[fields[mpn]] = {}
+            for col in range(len(header)):
+                if col != mpn:
+                    contents[fields[mpn]][header[col]] = fields[col]
+    return contents
+
 ### Read AMR_defaults.tsv into a dictionary ###
 def get_AMR_defaults(defaults):
     '''
