@@ -118,17 +118,22 @@ def find_amr(amr_positions,variants,nucl_pos):
         amr_vars[list(amr_positions[gene].values())[0]['Drug_Class']] = {} #keep track of all of our drug classes
     for var in variants:
         var_pos = variants[var]['POS']
-        if variants[var]['INFO']['Gene_ID'] in amr_positions or var_pos in nucl_pos: #for rRNA the MPN nums won't match
-            if var_pos in nucl_pos:
-                id = nucl_pos[var_pos]
-            else:
-                id = variants[var]['INFO']['Gene_ID']
-            snp = (variants[var]['INFO']['TYPE'] == 'snp')
-            if var_pos in amr_positions[id]: #this should only happen for nucl variants but we'll double check
-                if amr_positions[id][var_pos]['Nucleotide Position'] != "NA":
+        snp = (variants[var]['INFO']['TYPE'] == 'snp')
+        if variants[var]['INFO']['Gene_ID'] in amr_positions and variants[var]['INFO']['Annotation'] != 'upstream_gene_variant' and variants[var]['INFO']['Annotation'] != 'downstream_gene_variant': #AA changes are occurring in annotated genes
+            id = variants[var]['INFO']['Gene_ID']
+            for pos in amr_positions[id]:
+                if amr_positions[id][pos]['AA Position'] != "NA":
+                    #AA.pos/AA.length'
+                    if snp:
+                        pass
+        elif var_pos in nucl_pos:
+            id = nucl_pos[var_pos]
+            if var_pos in amr_positions[id]:
+                if amr_positions[id][var_pos]['Nucleotide Position'] != "NA": #just double checking
                     if snp and variants[var]['ALT'] in amr_positions[id][var_pos]['Alt']:
                         key,value = format_var(amr_positions[id][var_pos],variants[var],'Nucleotide Position')
                         amr_vars[amr_positions[id][var_pos]['Drug_Class']][key] = value #group by drug class
+            #for AA, loop over positions under MPN key and look for them
     print(amr_vars)
 
                     
