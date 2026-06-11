@@ -39,7 +39,7 @@ def parse_info(info_string, ann_info_header):
     input:
     output:
     '''
-    relevant_info = {"AO":"ALT_COUNT","RO":"REF_COUNT"}
+    relevant_info = {"AO":"ALT_COUNT","RO":"REF_COUNT","TYPE":"TYPE"}
     info_list = info_string.split(";")
     ann_info = info_list[-1].split("|")
     info = {}
@@ -83,156 +83,55 @@ def parse_vcf(input_path):
                 prev = line
     return variants
 
-# ### Read AMR_defaults.tsv into a dictionary ###
-# def get_AMR_defaults(defaults):
-#     '''
-#     input:
-#         defaults - path of file with AMR gene position default AA/Nucs 
-#     output:
-#         hgt_defaults - locuses of AMR genes that are (mostly) NOT present in FA19 / horizontally transferred genes with positions of interest as keys (nested dictionary)
-#         WG_Defaults - contains defaults for positions in AMR genes that are present in FA19 with positions of interest as keys (nested dictionary)
-#         mtrR_promoter - contains nucleotide positions as keys and default nucleotides as values for the mtrR promoter (dictionary)
-#     '''
-#     hgt_defaults = {}
-#     WG_defaults = {}
-#     mtrR_promoter = {}
-#     with open(defaults) as file: 
-#         count = 0
-#         for line in file:
-#             if count > 0:
-#                 fields = line.strip().split('\t')
-#                 if fields[2] == "CP012026": #Locus for FA19
-#                     if fields[0] == "mtrR promoter": #this promoter contains 5 positions, won't work well in WG dictionary
-#                         positions=fields[3].split(',')
-#                         for i in range(len(positions)):
-#                             mtrR_promoter[positions[i]] = fields[5][i]
-#                     else:
-#                         WG_defaults[fields[0]] = {"Gene":fields[1], "Locus":fields[2], "Nucleotide Position":fields[3], "AA Position":fields[4], "Default":fields[5]}
-#                 else:
-#                     hgt_defaults[fields[0]] = {"Gene":fields[1], "Locus":fields[2], "Nucleotide Position":fields[3], "AA Position":fields[4], "Default":fields[5]}
-#             count += 1
-#     return hgt_defaults, WG_defaults, mtrR_promoter
+### format variant for addition to dict containing variants to report ###
+def format_var(pos,var,type):
+    '''
+    '''
+    key = pos['MPN']+"-"+pos[type] #same key format as initial amr_pos dict
+    value = {}
+    value['GENE'] = pos['Gene']
+    value['POS'] = var['POS']
+    value['REF'] = var['REF']
+    value['ALT'] = var['ALT']
+    value['ALT_COUNT'] = var['INFO']['ALT_COUNT']
+    value['QUAL'] = var['QUAL']
+    if type == 'Nucleotide Position':
+        if pos['MPN'] == 'MPN_RS00530': #23S
+            value['EFFECT'] = value['REF'] + str(int(var['POS'])-120056) + value['ALT']
+    else:
+        value['EFFECT'] = var['INFO']['HGVS.p']
+    value['DEPTH'] = int(var['INFO']['REF_COUNT'])+int(value['ALT_COUNT'])
+    alt_frac = int(value['ALT_COUNT'])/value['DEPTH']
+    if value['DEPTH'] < 10 or alt_frac < 0.9:
+        value['PASS/FAIL'] = 'FAIL'
+    else:
+        value['PASS/FAIL'] = 'PASS'
+    
+    return key,value
 
-# ### Check all whole genome positions with default values to see if mutations appear at those positions ###
-# def get_FA19_calls(WG_defaults,file,AA):
-#     '''
-#     input:
-#         WG_defaults - contains defaults for positions in AMR genes that are present in FA19 with positions of interest as keys (nested dictionary)
-#         file - name of tab separated vcf file with just relevant AMR genes (string)
-#         AA - amino acid multi letter code as keys and single letter code as values (dictionary)
-#     output:
-#         results - stores variants for sample with positions as keys and found variants or defaults as values (dictionary)
-#     '''
-#     results = {}    
-#     for field in WG_defaults.keys():
-#         if field != 'penA D345ins':
-#             if WG_defaults[field]["Nucleotide Position"] != 'NA':
-#                 pattern = '.*[^\S]+' + WG_defaults[field]["Nucleotide Position"] + '[^\S]+.*'
-#                 found,variant = run_grep(pattern,file)
-#                 if found and len(variant[4]) == 1:
-#                     results[field] = variant[4]
-#                 else: 
-#                     results[field] = WG_defaults[field]["Default"]
-#             else:
-#                 if WG_defaults[field]["Gene"] == 'ponA':
-#                     pattern = '.*p(.)[a-zA-Z]+' + WG_defaults[field]["AA Position"] + '[a-zA-Z]+.*' + 'mrcA' + '.*' #ponA is annotated as mrcA in FA19
-#                 elif WG_defaults[field]["Gene"] == 'mtrD':
-#                     pattern = '.*p(.)[a-zA-Z]+' + WG_defaults[field]["AA Position"] + '[a-zA-Z]+.*' + 'mexB' + '.*' #mtrD is annotated as mexB in FA19
-#                 else: pattern = '.*p(.)[a-zA-Z]+' + WG_defaults[field]["AA Position"] + '[a-zA-Z]+.*' + WG_defaults[field]["Gene"] + '.*' 
-#                 found,variant = run_grep(pattern,file)
-#                 if found:
-#                     result = variant[10].split(' ')[-1].split(WG_defaults[field]["AA Position"]) #parse resulting AA from "EFFECT" column
-#                     if len(result) == 2 and len(result[1]) == 3:
-#                         aa = result[1]
-#                         results[field] = AA[aa]
-#                     elif len(result) == 2 and len(result[1]) > 3: #deal with complex mutations that START at the AA position of interest (takes the first AA change in the complex mutation)
-#                         aa = ''.join(list(result[1])[0:3])
-#                         results[field] = AA[aa]
-#                     else:
-#                         results[field] = WG_defaults[field]["Default"] 
-#                 else: 
-#                     results[field] = WG_defaults[field]["Default"]
-#         else: results[field] = penA_D345ins(WG_defaults,WG_defaults[field]["Gene"],field,file)
-#     return results
+### check annotated VCF for known AMR variants ###
+def find_amr(amr_positions,variants,nucl_pos):
+    '''
+    '''
+    amr_vars = {}
+    for gene in amr_positions:
+        amr_vars[list(amr_positions[gene].values())[0]['Drug_Class']] = {} #keep track of all of our drug classes
+    for var in variants:
+        var_pos = variants[var]['POS']
+        if variants[var]['INFO']['Gene_ID'] in amr_positions or var_pos in nucl_pos: #for rRNA the MPN nums won't match
+            if var_pos in nucl_pos:
+                id = nucl_pos[var_pos]
+            else:
+                id = variants[var]['INFO']['Gene_ID']
+            snp = (variants[var]['INFO']['TYPE'] == 'snp')
+            if var_pos in amr_positions[id]: #this should only happen for nucl variants but we'll double check
+                if amr_positions[id][var_pos]['Nucleotide Position'] != "NA":
+                    if snp and variants[var]['ALT'] in amr_positions[id][var_pos]['Alt']:
+                        key,value = format_var(amr_positions[id][var_pos],variants[var],'Nucleotide Position')
+                        amr_vars[amr_positions[id][var_pos]['Drug_Class']][key] = value #group by drug class
+    print(amr_vars)
 
-# ### Check vcf as far as 5 AA positions or 15 nucleotide positions back for complex mutations ###
-# def check_vcf(poi,file,lookback,AA):
-#     '''
-#     input: 
-#         poi - position of interest dictionary with "Gene", "Locus", "Nucleotide Position", "AA Position", and "Default" as keys with the corresponding information as values (dictionary)
-#         file - name of tab separated vcf file with just relevant AMR genes (string)
-#         lookback - number of positions to look back for considering complex mutations (int)
-#         AA - amino acid multi letter code as keys and single letter code as values (dictionary)
-#     output:
-#         not_found - True if no complex variants impacting the point of interest are found (bool) 
-#         variant - amino acid or nucleotide found at position of interest within complex mutation
-#     '''
-#     not_found = True 
-#     variant = ''
-#     for i in range(1,lookback+1):
-
-#         if poi['AA Position'] != 'NA':
-#             position = str(int(poi['AA Position']) - i)
-#             if poi['Gene'] == 'ponA':
-#                 pattern = '.*complex.*.*p(.)[a-zA-Z]+' + position + '[a-zA-Z]+.*' + 'mrcA' + '.*' #ponA is annotated as mrcA in FA19
-#             elif poi['Gene'] == 'mtrD':
-#                  pattern = '.*complex.*.*p(.)[a-zA-Z]+' + position + '[a-zA-Z]+.*' + 'mexB' + '.*' #mtrD is annotated as mexB in FA19
-#             else: pattern = '.*complex.*.*p(.)[a-zA-Z]+' + position + '[a-zA-Z]+.*' + poi['Gene'] + '.*' 
-#         else: 
-#             position = str(int(poi['Nucleotide Position']) - i)
-#             pattern = '^' + poi["Locus"] + '[^\S]+' + position + '[^\S]+complex.*' 
-
-#         found,variant = run_grep(pattern,file)
-#         if found:
-#             if poi['AA Position'] != 'NA':
-#                 AA_list = variant[10].split(' ')[-1].split(position) #parse resulting AA from "EFFECT" column 
-#                 num_aa = i*3
-#                 if len(AA_list[1]) > num_aa: #check if complex variant reaches position of interest
-#                     aa = ''.join(list(AA_list[1])[num_aa:(num_aa+3)])
-#                     variant = AA[aa]
-#                     not_found = False 
-#             else:
-#                 nuc_list = list(variant[4])
-#                 if len(nuc_list) > i: #check if complex variant reaches position of interest
-#                     variant = nuc_list[i]
-#                     not_found = False
-#             break #if the variant does not reach the point of interest no further away variants will and the point of interest will stay set to wild type default, so we exit either way
-
-#     return not_found,variant
-
-# ### Check if snippy called complex mutations impacting positions of interest ###
-# def check_complex(results,file,hgt_defaults,WG_defaults,AA):
-#     '''
-#     input:
-#         results - stores variants for sample with positions as keys and found variants or defaults as values (dictionary)
-#         file - name of tab separated vcf file with just relevant AMR genes (string)
-#         hgt_defaults - locuses of AMR genes that are (mostly) NOT present in FA19 / horizontally transferred genes with positions of interest as keys (nested dictionary)
-#         WG_defaults - contains defaults for positions in AMR genes that are present in FA19 with positions of interest as keys (nested dictionary)
-#         AA - amino acid multi letter code as keys and single letter code as values (dictionary)
-#     output:
-#         results - results dictionary updated to include mutations at positions of interest due to complex mutations
-#     '''
-#     not_found = True
-
-#     for result in results:
-
-#         if result in hgt_defaults and re.search('freq',result) == None:
-#             if results[result] == hgt_defaults[result]['Default']:
-#                 if hgt_defaults[result]['Nucleotide Position'] != 'NA':
-#                     not_found,variant = check_vcf(hgt_defaults[result],file,30,AA)
-#                 else: not_found,variant = check_vcf(hgt_defaults[result],file,10,AA)
-
-#         elif result in WG_defaults and result != 'penA D345ins':
-#             if results[result] == WG_defaults[result]['Default']:
-#                 if WG_defaults[result]['Nucleotide Position'] != 'NA':
-#                     not_found,variant = check_vcf(WG_defaults[result],file,30,AA)
-#                 else: not_found,variant = check_vcf(WG_defaults[result],file,10,AA)
-
-#         if not not_found: #sorry for the double neg
-#             results[result] = variant
-#             not_found = True #reset this for the next position of interest
-
-#     return results
+                    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -252,6 +151,22 @@ if __name__ == "__main__":
     out = args.out_path
 
     amr_genes = parse_tsv(genes_path,"MPN")
-    amr_positions = parse_tsv(snps_path,"Name")
+    amr_pos = parse_tsv(snps_path,"Name")
+    
+    # reformat dictionary to make it easier to search
+    amr_positions = {}
+    nucl_pos = {} #nucleotide positions for rRNA variants
+    for pos in amr_pos.keys():
+        keys = pos.split('-')
+        if keys[0] not in amr_positions:
+            amr_positions[keys[0]] = { keys[1]: amr_pos[pos] }
+        else:
+            amr_positions[keys[0]][keys[1]] = amr_pos[pos]
+        if amr_pos[pos]['Nucleotide Position'] != "NA":
+            nucl_pos[keys[1]] = keys[0]
 
+    #print(amr_positions)
     variants = parse_vcf(input_path)
+    #l = list(variants.keys())
+    #print(variants[l[0]]['INFO'])
+    find_amr(amr_positions,variants,nucl_pos)
