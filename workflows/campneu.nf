@@ -173,6 +173,7 @@ workflow CAMPNEU {
         ch_ds_stats = PREPROCESSING.out.ds_stats.mix(PREPROCESS.out.ds_stats)
                         .ifEmpty([])
 
+        def run_date = workflow.start.format("yyyy-MM-dd")
         //
         // Report results from run
         //
@@ -183,7 +184,10 @@ workflow CAMPNEU {
             SPECIES_ID.out.mlst_report,
             SPECIES_ID.out.ani_report,
             AMR.out.snp_report,
-            "${params.depth}"
+            "${params.depth}",
+            "${workflow.manifest.description}",
+            "${workflow.manifest.version}",
+            "${run_date}"
         )
     } 
 
