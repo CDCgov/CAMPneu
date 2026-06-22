@@ -11,6 +11,9 @@ process SUMMARY_REPORT {
     path(ani)
     path(snps)
     val(depth)
+    val(description)
+    val(version)
+    val(date)
 
     output:
     path("summary_report.out"), emit: report
@@ -25,6 +28,11 @@ process SUMMARY_REPORT {
     """
 
     touch summary_report.out
+
+    echo "CAMPneu - ${description}\n" >> summary_report.out
+    echo "Version: ${version}\n" >> summary_report.out
+    echo "Run date: ${date}\n" >> summary_report.out
+
 
     if ${align_stats}; then
         echo "Coverage and depth without deduping or downsampling\n" >> summary_report.out
