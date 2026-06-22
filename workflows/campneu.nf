@@ -185,8 +185,8 @@ workflow CAMPNEU {
             SPECIES_ID.out.ani_report,
             AMR.out.snp_report,
             "${params.depth}",
-            "${manifest.description}",
-            "${manifest.version}",
+            "${workflow.manifest.description}",
+            "${workflow.manifest.version}",
             "${run_date}"
         )
     } 

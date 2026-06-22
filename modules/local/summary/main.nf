@@ -29,8 +29,8 @@ process SUMMARY_REPORT {
 
     touch summary_report.out
 
-    echo "CAMPneu - ${description}\n" >> summary_report.out
-    echo "Version: ${version}\n" >> summary_report.out
+    echo "CAMPneu - ${description}" >> summary_report.out
+    echo "Version: ${version}" >> summary_report.out
     echo "Run date: ${date}\n" >> summary_report.out
 
 
