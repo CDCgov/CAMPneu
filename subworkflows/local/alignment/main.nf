@@ -75,6 +75,7 @@ workflow ALIGNMENT {
     )
     ch_versions = ch_versions.mix(REPORT_DEPTH_COV.out.versions)
 
+
     ch_stats = REPORT_DEPTH_COV.out.tsv
 
     // Merge depth cov reports

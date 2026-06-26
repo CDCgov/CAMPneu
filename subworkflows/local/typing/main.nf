@@ -1,41 +1,16 @@
 //
-// Species ID with Kraken, sequence typing with MLST, reference selection with FastANI
+// sequence typing with MLST, P1 typing with FastANI
 //
-include { KRAKEN2_KRAKEN2 } from '../../../modules/nf-core/kraken2/kraken2/main'
-include { GET_MP_PERCENT  } from '../../../modules/local/mp_percent/main'
 include { MLST            } from '../../../modules/local/mlst/main'
 include { FASTANI         } from '../../../modules/local/fastani/main'
 
-workflow SPECIES_ID {
+workflow TYPING {
     take:
-    reads             // channel: [ val(meta), [ reads ] ]
     ch_contigs        // channel: [ val(meta), contigs ]
 
     main:
 
     ch_versions = Channel.empty()
-
-    //
-    // Classify reads with Kraken2
-    //
-    KRAKEN2_KRAKEN2 (
-        reads,
-        "${params.kraken2db}",
-        false,
-        false
-    )
-    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
-
-    GET_MP_PERCENT (
-        KRAKEN2_KRAKEN2.out.report
-    )
-    ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
-
-    //Merge Mp percent reports
-    ch_merge_percent = GET_MP_PERCENT.out.tsv
-                            .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
-                                meta, file -> file
-                            }
 
     //
     // Sequence typing with mlst
@@ -55,7 +30,7 @@ workflow SPECIES_ID {
                     }
 
     //
-    // 1 vs references to pick best reference
+    // 1 vs typ1 & type2 reference to determine P1 type with FastANI
     //
     FASTANI (
         ch_contigs,
@@ -111,9 +86,6 @@ workflow SPECIES_ID {
     
 
     emit:
-    kraken2_report      = KRAKEN2_KRAKEN2.out.report                 // channel: [ meta, report ]
-    percent_mp          = ch_merge_percent                           // channel: [ Mp_report.tsv ]
-
     mlst_report         = ch_merge                                   // channel: [ mlst_report.tsv ]
 
     ani_tophit          = ch_tophit                                  // channel: [ meta, hitname, ani ]
