@@ -253,6 +253,7 @@ workflow CAMPNEU {
             TYPING.out.mlst_report,
             TYPING.out.ani_report,
             AMR.out.snp_report,
+            AMR.out.amr_report,
             "${params.depth}",
             "${workflow.manifest.description}",
             "${workflow.manifest.version}",

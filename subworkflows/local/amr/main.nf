@@ -68,8 +68,15 @@ workflow AMR {
     )
     ch_versions = ch_versions.mix(AMRFINDERPLUS_RUN.out.versions)
 
+    // Merge AMRFinderPlus reports
+    ch_amr_report = AMRFINDERPLUS_RUN.out.report
+                        .collectFile(name:'AMRFinderPlus_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
+                            meta, file -> file
+                        }
+
     emit:
-    snp_report          = ch_snp_report                              // channel: [ 'SNP_report.tsv' ]
+    snp_report          = ch_snp_report                              // channel: [ SNP_report.tsv ]
+    amr_report          = ch_amr_report                              // channel: [ AMRFinderPlus_report.tsv ]
     versions            = ch_versions                                // channel: [ versions.yml ]
 
 }

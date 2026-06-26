@@ -11,6 +11,7 @@ process SUMMARY_REPORT {
     path(mlst)
     path(ani)
     path(snps)
+    path(amr)
     val(depth)
     val(description)
     val(version)
@@ -61,16 +62,18 @@ process SUMMARY_REPORT {
     echo "P1 type determined by ANI\n" >> summary_report.out
     column -t ${ani} >> summary_report.out
     echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
-    echo "Identification of Macrolide Resistant SNPs using FreeBayes\n" >> summary_report.out
+    echo "Identification of macrolide resistant SNPs using FreeBayes\n" >> summary_report.out
     column -t ${snps} >> summary_report.out
+    echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
+    echo "Identification of AMR genes with AMRFinderPlus\n" >> summary_report.out
+    column -t ${amr} >> summary_report.out
     echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
 
     """
     stub:
-    def deduped = dedup_stats     ?  true : false
     """
 
-    summary_report.sh $stats $dedup_stats $mp_percent $mlst $ani $snps $deduped
+    touch summary_report.out
 
     """
 
