@@ -10,7 +10,7 @@ include { PREPROCESSING as PREPROCESS } from '../subworkflows/local/preprocess'
 include { KRAKEN2_KRAKEN2             } from '../modules/nf-core/kraken2/kraken2/main'
 include { GET_MP_PERCENT              } from '../modules/local/mp_percent/main'
 include { ASSEMBLY                    } from '../subworkflows/local/assembly'
-include { SPECIES_ID                  } from '../subworkflows/local/species_id'
+include { TYPING                      } from '../subworkflows/local/typing'
 include { MINIMAP2_INDEX              } from '../modules/nf-core/minimap2/index/main'
 include { ASSEMBLYALIGNMENT           } from '../subworkflows/local/assemblyalignment'
 include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
@@ -127,6 +127,19 @@ workflow CAMPNEU {
         ch_versions = ch_versions.mix(PREPROCESS.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(PREPROCESS.out.json.collect{it[1]})
 
+
+        // Merge fastp reports
+        ch_fastp_report = PREPROCESSING.out.fastp_reports.mix(PREPROCESS.out.fastp_reports)
+                        .map {
+                            meta, tsv ->
+                            def file = tsv.splitCsv( header:true, sep:"\t" )
+                            return [ meta, [ before_reads:file.before_filtering_total_reads, before_q30:file.before_filtering_q30_rate, after_reads:file.after_filtering_total_reads, after_q30:file.after_filtering_q30_rate ] ]
+                        }
+                        .collectFile(name:"fastp_report.tsv", seed: 'before_filtering_total_reads\tbefore_filtering_q30_rate\tafter_filtering_total_reads\tafter_filtering_q30_rate',storeDir:"${params.outdir}/reports/", cache:false){
+                            meta, fastp ->
+                            [ 'fastp_report.tsv', meta.id + '\t' + fastp.before_reads + '\t'+ fastp.before_q30 + '\t' + fastp.after_reads + '\t' + fastp.after_q30 ]
+                        }
+
         ch_reads = PREPROCESSING.out.reads.mix(PREPROCESS.out.reads)
 
         //
@@ -233,6 +246,7 @@ workflow CAMPNEU {
         // Report results from run
         //
         SUMMARY_REPORT(
+            ch_fastp_report,
             ch_stats,
             ch_ds_stats,
             ch_percent_mp,

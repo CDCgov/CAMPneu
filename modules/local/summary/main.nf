@@ -4,6 +4,7 @@ process SUMMARY_REPORT {
     container "docker://roboxes/rhel8:4.3.14"
 
     input:
+    path(fastp_report)
     path(stats)
     path(ds_stats)
     path(mp_percent)
@@ -22,6 +23,7 @@ process SUMMARY_REPORT {
     task.ext.when == null || task.ext.when
 
     script:
+    def fastp = fastp_report      ?  true : false
     def kraken = mp_percent       ?  true : false
     def align_stats = stats       ?  true : false
     def downsampled = ds_stats    ?  true : false
@@ -33,7 +35,11 @@ process SUMMARY_REPORT {
     echo "Version: ${version}" >> summary_report.out
     echo "Run date: ${date}\n" >> summary_report.out
 
-
+    if ${fastp}; then
+        echo "Read stats before and after filtering with fastp\n" >> summary_report.out
+        column -t ${fastp_report} >> summary_report.out
+        echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
+    fi 
     if ${align_stats}; then
         echo "Coverage and depth without deduping or downsampling\n" >> summary_report.out
         column -t ${stats} >> summary_report.out
@@ -55,7 +61,7 @@ process SUMMARY_REPORT {
     echo "P1 type determined by ANI\n" >> summary_report.out
     column -t ${ani} >> summary_report.out
     echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
-    echo "Identification of Macrolide Resistant SNPs using Freebayes\n" >> summary_report.out
+    echo "Identification of Macrolide Resistant SNPs using FreeBayes\n" >> summary_report.out
     column -t ${snps} >> summary_report.out
     echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
 
