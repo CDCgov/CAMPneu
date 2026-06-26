@@ -64,18 +64,10 @@ if __name__ == "__main__":
     )
 
     parser.add_argument("-i", "--in_file", type=str, required=True, help="JSON file")
-    parser.add_argument(
-        "-o",
-        "--out",
-        type=str,
-        required=True,
-        help="Full path of pipeline output directory",
-    )
 
     args = parser.parse_args()
 
     json_file = args.in_file
-    out = args.out
 
     final_summary = make_dict(json_file)
     writeTSV(final_summary)

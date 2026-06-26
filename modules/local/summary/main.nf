@@ -42,7 +42,7 @@ process SUMMARY_REPORT {
         echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
     fi 
     if ${align_stats}; then
-        echo "Coverage and depth without deduping or downsampling\n" >> summary_report.out
+        echo "Coverage and depth without downsampling\n" >> summary_report.out
         column -t ${stats} >> summary_report.out
         echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.out
     fi 

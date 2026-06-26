@@ -84,12 +84,12 @@ workflow PREPROCESSING {
     ch_merge = ALIGNMENT.out.stats
 
     // get avg depth for depth check
-    ch_avgdepth = ch_stats.out.tsv
+    ch_avgdepth = ch_stats
                     .map {
                         meta, tsv ->
                         def file = tsv
                                     .splitCsv( header:true, sep:"\t" )
-                        def depth = file.avg_depth
+                        def depth = file.avg_depth[0] as Float
                         return [ meta, depth ]
                     }
                     .branch {
