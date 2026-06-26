@@ -136,7 +136,7 @@ workflow CAMPNEU {
                                         .splitCsv( header:true, sep:"\t" )
                             return [ meta, [ before_reads:file.before_filtering_total_reads[0], before_q30:file.before_filtering_q30_rate[0], after_reads:file.after_filtering_total_reads[0], after_q30:file.after_filtering_q30_rate[0] ] ]
                         }
-                        .collectFile(name:"fastp_report.tsv", seed: 'before_filtering_total_reads\tbefore_filtering_q30_rate\tafter_filtering_total_reads\tafter_filtering_q30_rate',storeDir:"${params.outdir}/reports/", cache:false, newLine:true){
+                        .collectFile(name:"fastp_report.tsv", seed: 'sample\tbefore_filtering_total_reads\tbefore_filtering_q30_rate\tafter_filtering_total_reads\tafter_filtering_q30_rate',storeDir:"${params.outdir}/reports/", cache:false, newLine:true){
                             meta, fastp ->
                             [ 'fastp_report.tsv', meta.id + '\t' + fastp.before_reads + '\t'+ fastp.before_q30 + '\t' + fastp.after_reads + '\t' + fastp.after_q30 ]
                         }

@@ -70,9 +70,19 @@ workflow AMR {
 
     // Merge AMRFinderPlus reports
     ch_amr_report = AMRFINDERPLUS_RUN.out.report
-                        .collectFile(name:'AMRFinderPlus_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
-                            meta, file -> file
+                        .map {
+                            meta, tsv ->
+                            def file = tsv
+                                        .splitCsv( sep:"\t" )
+                            return [ meta, [ symbol:file[6], name:file[7], type:file[9], class:file[11], cov:file[16], ident:file[17], acc:file[19] ] ]
                         }
+                        .collectFile(name:"AMRFinderPlus_report.tsv", seed: 'Sample\tElement_symbol\tElement_name\tType\tClass\t%_Coverage_of_reference\t%_Identity_to_reference\tClosest_reference_accession',storeDir:"${params.outdir}/reports/", cache:false, newLine:true){
+                            meta, amr ->
+                            [ 'AMRFinderPlus_report.tsv', meta.id + '\t' + amr.symbol + '\t'+ amr.name + '\t' + amr.type + '\t' + amr.class + '\t' + amr.cov + '\t' + amr.ident + '\t' + amr.acc ]
+                        }
+                        // .collectFile(name:'AMRFinderPlus_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
+                        //     meta, file -> file
+                        // }
 
     emit:
     snp_report          = ch_snp_report                              // channel: [ SNP_report.tsv ]
