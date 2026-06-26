@@ -8,8 +8,8 @@ process PARSE_FASTP_REPORTS {
     tuple val(meta), path(json_file)
 
     output:
-    path("*.tsv")      , emit: tsv_path
-    path "versions.yml", emit: versions
+    tuple val(meta), path("*.tsv") , emit: tsv_path
+    path "versions.yml"            , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -17,7 +17,7 @@ process PARSE_FASTP_REPORTS {
     script:
     """
 
-    parse_filter.py -i $json_file -o $params.outdir
+    parse_filter.py -i $json_file
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

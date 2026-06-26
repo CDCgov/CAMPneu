@@ -7,8 +7,10 @@ include { PREFETCH                    } from '../modules/local/prefetch/main'
 include { FASTERQDUMP                 } from '../modules/local/fasterqdump/main'
 include { PREPROCESSING               } from '../subworkflows/local/preprocess'
 include { PREPROCESSING as PREPROCESS } from '../subworkflows/local/preprocess'
+include { KRAKEN2_KRAKEN2             } from '../modules/nf-core/kraken2/kraken2/main'
+include { GET_MP_PERCENT              } from '../modules/local/mp_percent/main'
 include { ASSEMBLY                    } from '../subworkflows/local/assembly'
-include { SPECIES_ID                  } from '../subworkflows/local/species_id'
+include { TYPING                      } from '../subworkflows/local/typing'
 include { MINIMAP2_INDEX              } from '../modules/nf-core/minimap2/index/main'
 include { ASSEMBLYALIGNMENT           } from '../subworkflows/local/assemblyalignment'
 include { MINIMAP2_ALIGN              } from '../modules/nf-core/minimap2/align/main'
@@ -125,39 +127,106 @@ workflow CAMPNEU {
         ch_versions = ch_versions.mix(PREPROCESS.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(PREPROCESS.out.json.collect{it[1]})
 
+
+        // Merge fastp reports
+        ch_fastp_report = PREPROCESSING.out.fastp_reports.mix(PREPROCESS.out.fastp_reports)
+                        .map {
+                            meta, tsv ->
+                            def file = tsv
+                                        .splitCsv( header:true, sep:"\t" )
+                            return [ meta, [ before_reads:file.before_filtering_total_reads[0], before_q30:file.before_filtering_q30_rate[0], after_reads:file.after_filtering_total_reads[0], after_q30:file.after_filtering_q30_rate[0] ] ]
+                        }
+                        .collectFile(name:"fastp_report.tsv", seed: 'sample\tbefore_filtering_total_reads\tbefore_filtering_q30_rate\tafter_filtering_total_reads\tafter_filtering_q30_rate',storeDir:"${params.outdir}/reports/", cache:false, newLine:true){
+                            meta, fastp ->
+                            [ 'fastp_report.tsv', meta.id + '\t' + fastp.before_reads + '\t'+ fastp.before_q30 + '\t' + fastp.after_reads + '\t' + fastp.after_q30 ]
+                        }
+
+        ch_reads = PREPROCESSING.out.reads.mix(PREPROCESS.out.reads)
+
+        //
+        // MODULE: Classify reads with Kraken2
+        //
+        KRAKEN2_KRAKEN2 (
+            ch_reads,
+            "${params.kraken2db}",
+            false,
+            false
+        )
+        ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
+
+        //
+        // MODULE: Determine Mp percent from Kraken2 read classification
+        //
+        GET_MP_PERCENT (
+            KRAKEN2_KRAKEN2.out.report
+        )
+        ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
+
+        // check if Mp percent is >90% to pass/fail samples
+        ch_checkmp = GET_MP_PERCENT.out.tsv
+                        .map {
+                            meta, tsv ->
+                            def file = tsv
+                                        .splitCsv( header:true, sep:"\t" )
+                            def percent = file.Percent_Mp[0] as Float
+                            return [ meta, percent ]
+                        }
+                        .branch {
+                            meta, percent ->
+                            pass: percent >= 90
+                            fail: percent < 90
+                        }
+
+        //Merge Mp percent reports
+        ch_percent_mp = GET_MP_PERCENT.out.tsv
+                                .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
+                                    meta, file -> file
+                                }
+                                .ifEmpty([])
+        
+        ch_reads = ch_reads.join(ch_checkmp.pass)
+                                    .map {
+                                        meta, reads, percent ->
+                                        [ meta, reads ]
+                                    }
+        
+        ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai).join(ch_checkmp.pass)
+                                    .map {
+                                        meta, bam, bai, percent ->
+                                        [ meta, bam, bai ]
+                                    }
+                                    .mix(ASSEMBLYALIGNMENT.out.bam_bai)
+
+        ch_reads_to_assemble = PREPROCESSING.out.reads.join(ch_checkmp.pass)
+                                    .map{
+                                        meta, reads, percent ->
+                                        [ meta, reads ]
+                                    }
         //
         // SUBWORKFLOW: Assembly & assembly QC
         //
         ASSEMBLY (
-            PREPROCESSING.out.reads
+            ch_reads_to_assemble
         )
         ch_multiqc_files = ch_multiqc_files.mix(ASSEMBLY.out.quast_results.collect{it[1]})
         ch_versions = ch_versions.mix(ASSEMBLY.out.versions)
 
-        ch_reads = PREPROCESSING.out.reads.mix(PREPROCESS.out.reads)
-
-        ch_only_fasta = ch_samplesheet_mix 
+        ch_only_fasta = ch_samplesheet_mix.join(ch_checkmp.pass)
                             .map {
-                                meta, reads, fasta ->
+                                meta, reads, fasta, percent ->
                                 [ meta, fasta ]
                             }
         
         ch_assembly = ch_samplesheet_fasta.mix(ch_only_fasta).mix(ASSEMBLY.out.contigs)
 
-        ch_bam_bai = ASSEMBLYALIGNMENT.out.bam_bai.mix(PREPROCESSING.out.bam_bai).mix(PREPROCESS.out.bam_bai)
-
         //
-        // SUBWORKFLOW: Species identification, P1 typing, sequence typing
+        // SUBWORKFLOW: P1 typing, sequence typing
         //
-        SPECIES_ID (
-            ch_reads,
+        TYPING (
             ch_assembly
         )
-        ch_multiqc_files = ch_multiqc_files.mix(SPECIES_ID.out.kraken2_report.collect{it[1]})
-        ch_versions = ch_versions.mix(SPECIES_ID.out.versions)
-
-        ch_percent_mp = SPECIES_ID.out.percent_mp
-                            .ifEmpty([])
+        ch_versions = ch_versions.mix(TYPING.out.versions)
 
         //
         // SUBWORKFLOW: AMR characterization
@@ -178,12 +247,14 @@ workflow CAMPNEU {
         // Report results from run
         //
         SUMMARY_REPORT(
+            ch_fastp_report,
             ch_stats,
             ch_ds_stats,
             ch_percent_mp,
-            SPECIES_ID.out.mlst_report,
-            SPECIES_ID.out.ani_report,
+            TYPING.out.mlst_report,
+            TYPING.out.ani_report,
             AMR.out.snp_report,
+            AMR.out.amr_report,
             "${params.depth}",
             "${workflow.manifest.description}",
             "${workflow.manifest.version}",
