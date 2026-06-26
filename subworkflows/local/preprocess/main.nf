@@ -94,6 +94,31 @@ workflow PREPROCESSING {
     ch_bam_bai = ALIGNMENT.out.bam_bai
     ch_merge = ALIGNMENT.out.stats
 
+    // get avg depth for depth check
+    ch_avgdepth = ch_stats.out.tsv
+                    .map {
+                        meta, tsv ->
+                        def file = tsv
+                                    .splitCsv( header:true, sep:"\t" )
+                        def depth = file.avg_depth
+                        return [ meta, depth ]
+                    }
+                    .branch {
+                        meta, depth ->
+                        pass: depth >= 30
+                        fail: depth < 30
+                    }
+    // only passed samples continue
+    ch_bam_bai = ch_bam_bai.join(ch_avgdepth.pass)
+                    .map {
+                        meta, bam, bai, depth ->
+                        [ meta, bam, bai ]
+                    }
+    ch_fastq = ch_fastq.join(ch_avgdepth.pass)
+                    .map {
+                        meta, reads, depth ->
+                        [ meta, reads ]
+                    }
 
     ch_ds = Channel.empty()
     
