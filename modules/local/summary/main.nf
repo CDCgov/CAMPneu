@@ -8,6 +8,7 @@ process SUMMARY_REPORT {
     path(stats)
     path(ds_stats)
     path(mp_percent)
+    path(quast)
     path(mlst)
     path(ani)
     path(snps)
@@ -56,6 +57,9 @@ process SUMMARY_REPORT {
         column -t ${mp_percent} >> summary_report.txt
         echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.txt
     fi
+    echo "Assembly metrics reported by QUAST\n" >> summary_report.txt
+    column -t ${quast} >> summary_report.txt
+    echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.txt
     echo "Sequence typing using MLST\n" >> summary_report.txt
     column -t ${mlst} >> summary_report.txt
     echo "---------------------------------------------------------------------------------------------------------\n" >> summary_report.txt

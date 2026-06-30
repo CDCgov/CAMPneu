@@ -17,8 +17,13 @@ workflow ASSEMBLYALIGNMENT {
     //
     // MODULE: Generate assembly quality metrics 
     //
+    ch_quast = ch_contigs
+                .map {
+                    meta, contigs ->
+                    [ meta, contigs, [] ]
+                }
     QUAST(
-        ch_contigs,
+        ch_quast,
         ['ref',"${params.reference_genome}"],
         ['gff',"${params.ref_annotation}"]
     )
@@ -41,8 +46,8 @@ workflow ASSEMBLYALIGNMENT {
     ch_assembly_qc = ch_assembly_qc_metrics
                         .branch {
                             meta, s ->
-                                passed: ( 700 <= s.l && s.l <= 900 ) && s.cc <= 100 && s.n50 >= 49 && ( 39.7 <= s.gc && s.gc <= 40.2 )
-                                failed: ( s.l < 700 || 900 < s.l ) || s.cc > 100 || s.n50 < 49 || ( s.gc < 39.7 || 40.2 < s.gc )
+                                passed: ( 700 <= s.l && s.l <= 900 ) && s.cc <= 100 && s.n50 >= 49 && ( 39 <= s.gc && s.gc <= 41 )
+                                failed: ( s.l < 700 || 900 < s.l ) || s.cc > 100 || s.n50 < 49 || ( s.gc < 39 || 41 < s.gc )
                         }
     
     ch_contigs_passed = ch_contigs.join(ch_assembly_qc.passed)
@@ -78,7 +83,7 @@ workflow ASSEMBLYALIGNMENT {
 
     bam_bai             = ch_bam_bai                                    // channel: [ meta, bam, bai ]
     passed_contigs      = ch_contigs_passed                             // channel: [ meta, contigs ]
-    contig_metrics      = ch_assembly_qc_metrics                        // channel: [ meta, metrics ]
+    assembly_metrics    = ch_assembly_qc_metrics                        // channel: [ meta, metrics ]
 
     versions            = ch_versions                                   // channel: [ versions.yml ]
 

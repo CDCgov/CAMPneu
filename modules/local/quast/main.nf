@@ -42,6 +42,7 @@ process QUAST {
         $consensus
 
     ln -s ${prefix}/report.tsv ${prefix}.tsv
+    ln -s ${prefix}/transposed_report.tsv ${prefix}_transposed_report.tsv
     ln -s ${prefix}/reads_stats/reads_report.tsv ${prefix}_reads.tsv
     [ -f  ${prefix}/contigs_reports/all_alignments_transcriptome.tsv ] && ln -s ${prefix}/contigs_reports/all_alignments_transcriptome.tsv ${prefix}_transcriptome.tsv
     [ -f  ${prefix}/contigs_reports/misassemblies_report.tsv         ] && ln -s ${prefix}/contigs_reports/misassemblies_report.tsv ${prefix}_misassemblies.tsv
@@ -81,6 +82,7 @@ process QUAST {
     touch $prefix/icarus_viewers/contig_size_viewer.html
 
     ln -s $prefix/report.tsv ${prefix}.tsv
+    ln -s ${prefix}/transposed_report.tsv ${prefix}_transposed_report.tsv
 
     if [ $fasta ]; then
         touch $prefix/basic_stats/NGx_plot.pdf
