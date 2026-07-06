@@ -83,29 +83,30 @@ workflow PREPROCESSING {
     ch_bam_bai = ALIGNMENT.out.bam_bai
     ch_merge = ALIGNMENT.out.stats
 
-    // get avg depth for depth check
-    ch_avgdepth = ch_stats
+    // get avg depth for depth check and % breadth coverage with > 10x depth for breadth check
+    ch_cov = ch_stats
                     .map {
                         meta, tsv ->
                         def file = tsv
                                     .splitCsv( header:true, sep:"\t" )
                         def depth = file.avg_depth[0] as Float
-                        return [ meta, depth ]
+                        def breadth = file.'breadth_coverage>10X(%)'[0] as Float
+                        return [ meta, depth, breadth ]
                     }
                     .branch {
-                        meta, depth ->
-                        pass: depth >= 30
-                        fail: depth < 30
+                        meta, depth, breadth ->
+                        pass: depth >= 30 && breadth >= 90
+                        fail: depth < 30 || breadth < 90
                     }
     // only passed samples continue
-    ch_bam_bai = ch_bam_bai.join(ch_avgdepth.pass)
+    ch_bam_bai = ch_bam_bai.join(ch_cov.pass)
                     .map {
-                        meta, bam, bai, depth ->
+                        meta, bam, bai, depth, breadth ->
                         [ meta, bam, bai ]
                     }
-    ch_fastq = ch_fastq.join(ch_avgdepth.pass)
+    ch_fastq = ch_fastq.join(ch_cov.pass)
                     .map {
-                        meta, reads, depth ->
+                        meta, reads, depth, breadth ->
                         [ meta, reads ]
                     }
 

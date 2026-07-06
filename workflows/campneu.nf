@@ -72,25 +72,6 @@ workflow CAMPNEU {
                             [ meta, reads ]
                         }
 
-
-    //
-    // MODULE: Prefetch SRA samples
-    //
-    PREFETCH (
-        ch_samplesheet_sra
-    )
-    ch_versions = ch_versions.mix(PREFETCH.out.versions)
-
-    //
-    // MODULE: Download SRA files
-    //
-    FASTERQDUMP (
-        PREFETCH.out.prefetch
-    )
-    ch_versions = ch_versions.mix(FASTERQDUMP.out.versions)
-    
-    ch_samplesheet_fastq = ch_samplesheet_fastq.mix(FASTERQDUMP.out.fastq)
-
     //
     // MODULE: Create Minimap2 index of reference genome
     //
@@ -101,6 +82,23 @@ workflow CAMPNEU {
     ch_versions = ch_versions.mix(MINIMAP2_INDEX.out.versions)
 
     if (!params.phylogeny) {
+        //
+        // MODULE: Prefetch SRA samples
+        //
+        PREFETCH (
+            ch_samplesheet_sra
+        )
+        ch_versions = ch_versions.mix(PREFETCH.out.versions)
+
+        //
+        // MODULE: Download SRA files
+        //
+        FASTERQDUMP (
+            PREFETCH.out.prefetch
+        )
+        ch_versions = ch_versions.mix(FASTERQDUMP.out.versions)
+        
+        ch_samplesheet_fastq = ch_samplesheet_fastq.mix(FASTERQDUMP.out.fastq)
         //
         // SUBWORKFLOW: Align samples with only assemblies to the reference
         //
@@ -180,7 +178,7 @@ workflow CAMPNEU {
 
         //Merge Mp percent reports
         ch_percent_mp = GET_MP_PERCENT.out.tsv
-                                .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true){
+                                .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
                                     meta, file -> file
                                 }
                                 .ifEmpty([])
@@ -190,7 +188,7 @@ workflow CAMPNEU {
                                         meta, reads, percent ->
                                         [ meta, reads ]
                                     }
-        
+        //only filtering this channel by avg depth (checked in preprocess) & Mp percent, not checking if corresponding assemblies passed
         ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai).join(ch_checkmp.pass)
                                     .map {
                                         meta, bam, bai, percent ->
@@ -203,22 +201,31 @@ workflow CAMPNEU {
                                         meta, reads, percent ->
                                         [ meta, reads ]
                                     }
-        //
-        // SUBWORKFLOW: Assembly & assembly QC
-        //
-        ASSEMBLY (
-            ch_reads_to_assemble
-        )
-        ch_multiqc_files = ch_multiqc_files.mix(ASSEMBLY.out.quast_results.collect{it[1]})
-        ch_versions = ch_versions.mix(ASSEMBLY.out.versions)
-
+        //assemblies that were input alongside their readset 
         ch_only_fasta = ch_samplesheet_mix.join(ch_checkmp.pass)
                             .map {
                                 meta, reads, fasta, percent ->
                                 [ meta, fasta ]
                             }
+        //
+        // SUBWORKFLOW: Assembly & assembly QC
+        //
+        ASSEMBLY (
+            ch_reads_to_assemble,
+            ch_only_fasta
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(ASSEMBLY.out.quast_results.collect{it[1]})
+        ch_versions = ch_versions.mix(ASSEMBLY.out.versions)
+
+        //Merge assembly QC reports
+        ch_assembly_qc = ASSEMBLYALIGNMENT.out.assembly_metrics.mix(ASSEMBLY.out.assembly_metrics)
+                                .collectFile(name:'quast_report.tsv', seed: 'sample\ttotal_length(KB)\tcontig_count\tN50(KB)\tGC_content(%)', storeDir:"${params.outdir}/reports/", cache:false, newLine:true){
+                                    meta, metrics -> 
+                                    [ 'quast_report.tsv', meta.id + '\t' + metrics.l + '\t'+ metrics.cc + '\t' + metrics.n50 + '\t' + metrics.gc ]
+                                }
+
         
-        ch_assembly = ch_samplesheet_fasta.mix(ch_only_fasta).mix(ASSEMBLY.out.contigs)
+        ch_assembly = ASSEMBLYALIGNMENT.out.passed_contigs.mix(ASSEMBLY.out.passed_contigs)
 
         //
         // SUBWORKFLOW: P1 typing, sequence typing
@@ -251,6 +258,7 @@ workflow CAMPNEU {
             ch_stats,
             ch_ds_stats,
             ch_percent_mp,
+            ch_assembly_qc,
             TYPING.out.mlst_report,
             TYPING.out.ani_report,
             AMR.out.snp_report,
