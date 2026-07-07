@@ -48,7 +48,8 @@
                 },
                 "samtools_markdup": {
                     "type": "boolean",
-                    "description": "Dedup reads with Samtools markdup"
+                    "description": "Dedup reads with Samtools markdup",
+                    "hidden": true
                 },
                 "downsample": {
                     "type": "boolean",
@@ -56,7 +57,7 @@
                 },
                 "phylogeny": {
                     "type": "boolean",
-                    "description": "Perform phylogenetic analysis on input and generated assemblies"
+                    "description": "Perform phylogenetic analysis on input assemblies"
                 },
                 "gubbins": {
                     "type": "boolean",
@@ -74,6 +75,11 @@
                     "type": "string",
                     "description": "Path to M129 reference genome FASTA file",
                     "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_000027345.1_ASM2734v1_genomic.fna"
+                },
+                "type2": {
+                    "type": "string",
+                    "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna",
+                    "description": "Path to P1 Type 2 reference genome FASTA file"
                 },
                 "ref_name": {
                     "type": "string",
@@ -95,8 +101,7 @@
                     "description": "Path to file with reference names with respective P1 types",
                     "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/ref_type.csv"
                 }
-            },
-            "required": ["reference_genome", "ref_annotation", "ref_list", "ref_type"]
+            }
         },
         "sra_human_scrubber_options": {
             "title": "sra-human-scrubber options",
@@ -371,11 +376,5 @@
         {
             "$ref": "#/$defs/generic_options"
         }
-    ],
-    "properties": {
-        "type2": {
-            "type": "string",
-            "default": "https://raw.githubusercontent.com/CDCgov/CAMPneu/test-datasets/GCF_001272835.1_ASM127283v1_genomic.fna"
-        }
-    }
+    ]
 }
