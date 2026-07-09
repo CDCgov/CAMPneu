@@ -53,7 +53,11 @@ SRR32566410,,,,SRR32566410
 
 Each row represents a pair of fastq files (paired end), or an assembly, or a pair of fastq files and an assembly, or an SRA SRR ID.  
 
-The Kraken2 Standard database can be downloaded from [here](https://benlangmead.github.io/aws-indexes/k2)  
+The Kraken2 Standard 16GB database can be downloaded using the following command:  
+(requires `wget`)  
+```bash
+wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_16_GB_20260226.tar.gz
+``` 
 The AMRFinderPlus database can be downloaded using the following commands:  
 (requires `wget` and `BLAST+`)
 ```bash
