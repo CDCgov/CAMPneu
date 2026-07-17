@@ -22,7 +22,7 @@ Default analysis steps:
 1. Adaptor trimming and quality filtering ([`fastp`]())
 2. Map reads to a reference ([`Minimap2`]())
 3. Generate statistics on the alignment ([`Samtools stats`]())
-4. Determine the depth of coverage of each position in the reference ([`Samtools depth`])
+4. Determine the depth of coverage of each position in the reference ([`Samtools depth`]())
 5. Perform De novo assembly ([`Unicycler`]())
 6. Generate assembly quality metrics ([`QUAST`]())
 7. Perform contamination check ([`Kraken2`]())
@@ -78,7 +78,39 @@ nextflow run CDCgov/CAMPneu \
    --outdir <OUTDIR> \
    --kraken2db kraken2_Standard/ \
    --amrfinderplus_db AMRFinderPlus_db/ \
+```  
+
+or the following command when processing clinical specimens:  
+
+```bash
+nextflow run CDCgov/CAMPneu \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --outdir <OUTDIR> \
+   --host_removal \
+   --kraken2db kraken2_Standard/ \
+   --amrfinderplus_db AMRFinderPlus_db/ \
 ```
+  
+If the SRA human scrubber database is unable to be pulled at runtime (Nextflow will show the error `Cant't stage file https://ftp.ncbi.nlm.nih.gov/sra/dbs/human_filter.db.20250916v2 -- reason: Connection refused`) you can download this database:
+
+```bash
+wget https://ftp.ncbi.nlm.nih.gov/sra/dbs/human_filter.db.20250916v2
+```  
+
+And pass it to the pipeline at runtime with the `--human_db` parameter. (This is only needed when processing clinical specimen):
+
+```bash
+nextflow run CDCgov/CAMPneu \
+   -profile <docker/singularity/.../institute> \
+   --input samplesheet.csv \
+   --outdir <OUTDIR> \
+   --host_removal \
+   --kraken2db kraken2_Standard/ \
+   --amrfinderplus_db AMRFinderPlus_db/ \
+   --human_db human_filter.db.20250916v2 
+```
+
 
 > [!WARNING]
 > Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/usage/getting_started/configuration#custom-configuration-files).
