@@ -141,68 +141,69 @@ workflow CAMPNEU {
 
         ch_reads = PREPROCESSING.out.reads.mix(PREPROCESS.out.reads)
 
-        //
-        // MODULE: Classify reads with Kraken2
-        //
-        KRAKEN2_KRAKEN2 (
-            ch_reads,
-            "${params.kraken2db}",
-            false,
-            false
-        )
-        ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
-        ch_multiqc_files = ch_multiqc_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
+        // //
+        // // MODULE: Classify reads with Kraken2
+        // //
+        // KRAKEN2_KRAKEN2 (
+        //     ch_reads,
+        //     "${params.kraken2db}",
+        //     false,
+        //     false
+        // )
+        // ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
+        // ch_multiqc_files = ch_multiqc_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
 
-        //
-        // MODULE: Determine Mp percent from Kraken2 read classification
-        //
-        GET_MP_PERCENT (
-            KRAKEN2_KRAKEN2.out.report
-        )
-        ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
+        // //
+        // // MODULE: Determine Mp percent from Kraken2 read classification
+        // //
+        // GET_MP_PERCENT (
+        //     KRAKEN2_KRAKEN2.out.report
+        // )
+        // ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
 
-        // check if Mp percent is >90% to pass/fail samples
-        ch_checkmp = GET_MP_PERCENT.out.tsv
-                        .map {
-                            meta, tsv ->
-                            def file = tsv
-                                        .splitCsv( header:true, sep:"\t" )
-                            def percent = file.Percent_Mp[0] as Float
-                            return [ meta, percent ]
-                        }
-                        .branch {
-                            meta, percent ->
-                            pass: percent >= 90
-                            fail: percent < 90
-                        }
+        // // check if Mp percent is >90% to pass/fail samples
+        // ch_checkmp = GET_MP_PERCENT.out.tsv
+        //                 .map {
+        //                     meta, tsv ->
+        //                     def file = tsv
+        //                                 .splitCsv( header:true, sep:"\t" )
+        //                     def percent = file.Percent_Mp[0] as Float
+        //                     return [ meta, percent ]
+        //                 }
+        //                 .branch {
+        //                     meta, percent ->
+        //                     pass: percent >= 90
+        //                     fail: percent < 90
+        //                 }
 
-        //Merge Mp percent reports
-        ch_percent_mp = GET_MP_PERCENT.out.tsv
-                                .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
-                                    meta, file -> file
-                                }
-                                .ifEmpty([])
+        // //Merge Mp percent reports
+        // ch_percent_mp = GET_MP_PERCENT.out.tsv
+        //                         .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
+        //                             meta, file -> file
+        //                         }
+        //                         .ifEmpty([])
         
-        ch_reads = ch_reads.join(ch_checkmp.pass)
-                                    .map {
-                                        meta, reads, percent ->
-                                        [ meta, reads ]
-                                    }
+        // ch_reads = ch_reads.join(ch_checkmp.pass)
+        //                             .map {
+        //                                 meta, reads, percent ->
+        //                                 [ meta, reads ]
+        //                             }
         //only filtering this channel by avg depth (checked in preprocess) & Mp percent, not checking if corresponding assemblies passed
-        ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai).join(ch_checkmp.pass)
-                                    .map {
-                                        meta, bam, bai, percent ->
-                                        [ meta, bam, bai ]
-                                    }
-                                    .mix(ASSEMBLYALIGNMENT.out.bam_bai)
+        // ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai).join(ch_checkmp.pass)
+        //                             .map {
+        //                                 meta, bam, bai, percent ->
+        //                                 [ meta, bam, bai ]
+        //                             }
+        //                             .mix(ASSEMBLYALIGNMENT.out.bam_bai)
 
-        ch_reads_to_assemble = PREPROCESSING.out.reads.join(ch_checkmp.pass)
-                                    .map{
-                                        meta, reads, percent ->
-                                        [ meta, reads ]
-                                    }
+        // ch_reads_to_assemble = PREPROCESSING.out.reads.join(ch_checkmp.pass)
+        //                             .map{
+        //                                 meta, reads, percent ->
+        //                                 [ meta, reads ]
+        //                             }
+        
         //assemblies that were input alongside their readset 
-        ch_only_fasta = ch_samplesheet_mix.join(ch_checkmp.pass)
+        ch_only_fasta = ch_samplesheet_mix.join(PREPROCESS.out.checkmp)
                             .map {
                                 meta, reads, fasta, percent ->
                                 [ meta, fasta ]

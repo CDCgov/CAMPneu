@@ -84,6 +84,58 @@ workflow PREPROCESSING {
     }
 
     //
+    // MODULE: Classify reads with Kraken2
+    //
+    KRAKEN2_KRAKEN2 (
+        ch_fastq,
+        "${params.kraken2db}",
+        false,
+        true
+    )
+    ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
+
+    if (params.host_removal){
+    
+    }
+
+    //
+    // MODULE: Determine Mp percent from Kraken2 read classification
+    //
+    GET_MP_PERCENT (
+        KRAKEN2_KRAKEN2.out.report
+    )
+    ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
+
+    // check if Mp percent is >90% to pass/fail samples
+    ch_checkmp = GET_MP_PERCENT.out.tsv
+                    .map {
+                        meta, tsv ->
+                        def file = tsv
+                                    .splitCsv( header:true, sep:"\t" )
+                        def percent = file.Percent_Mp[0] as Float
+                        return [ meta, percent ]
+                    }
+                    .branch {
+                        meta, percent ->
+                        pass: percent >= 90
+                        fail: percent < 90
+                    }
+
+    //Merge Mp percent reports
+    ch_percent_mp = GET_MP_PERCENT.out.tsv
+                            .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
+                                meta, file -> file
+                            }
+                            .ifEmpty([])
+    
+    ch_fastq = ch_fastq.join(ch_checkmp.pass)
+                                .map {
+                                    meta, reads, percent ->
+                                    [ meta, reads ]
+                                }
+
+    //
     // SUBWORKFLOW: Perform alignment to Mp reference with Minimap2 and report stats
     //
     ALIGNMENT (
@@ -195,6 +247,7 @@ workflow PREPROCESSING {
     ds_stats            = ch_ds                                         // channel: [ downsampled_cov_depth.tsv ]
 
     reads               = ch_fastq                                      // channel: [ id: meta, [ reads ] ]
+    checkmp             = ch_checkmp.pass                               // channel: [ id: meta, ]
 
     bam_bai             = ch_bam_bai                                    // channel: [ meta, bam, bai ]
 
