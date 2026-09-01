@@ -7,6 +7,9 @@ include { PARSE_FASTP_REPORTS                        } from '../../../modules/lo
 include { SEQTK_MERGEPE                              } from '../../../modules/nf-core/seqtk/mergepe/main'
 include { SRA_HUMAN_SCRUBBER                         } from '../../../modules/local/sra-human-scrubber/main'
 include { SEQFU_DEINTERLEAVE                         } from '../../../modules/local/seqfu/deinterleave/main'
+include { KRAKEN2_KRAKEN2                            } from '../../../modules/nf-core/kraken2/kraken2/main'
+include { PARSEKRAKEN2                               } from '../../../modules/local/parsekraken2/main'
+include { GET_MP_PERCENT                             } from '../../../modules/local/mp_percent/main'
 include { SEQKIT_SAMPLE                              } from '../../../modules/local/seqkit/sample/main'
 
 include { ALIGNMENT                                  } from '../alignment/main'
@@ -93,11 +96,6 @@ workflow PREPROCESSING {
         true
     )
     ch_versions = ch_versions.mix(KRAKEN2_KRAKEN2.out.versions)
-    ch_multiqc_files = ch_multiqc_files.mix(KRAKEN2_KRAKEN2.out.report.collect{it[1]})
-
-    if (params.host_removal){
-    
-    }
 
     //
     // MODULE: Determine Mp percent from Kraken2 read classification
@@ -107,27 +105,55 @@ workflow PREPROCESSING {
     )
     ch_versions = ch_versions.mix(GET_MP_PERCENT.out.versions)
 
-    // check if Mp percent is >90% to pass/fail samples
-    ch_checkmp = GET_MP_PERCENT.out.tsv
-                    .map {
-                        meta, tsv ->
-                        def file = tsv
-                                    .splitCsv( header:true, sep:"\t" )
-                        def percent = file.Percent_Mp[0] as Float
-                        return [ meta, percent ]
-                    }
-                    .branch {
-                        meta, percent ->
-                        pass: percent >= 90
-                        fail: percent < 90
-                    }
+    if (params.host_removal){
+
+        ch_parsekraken2 = ch_fastq.join(KRAKEN2_KRAKEN2.out.classified_reads_assignment)
+        //
+        // MODULE: Parse Kraken2 per read classifications and extract all Mycoplasmoidales -> Mycoplasmoides pneumoniae
+        //
+        PARSEKRAKEN2 (
+            ch_parsekraken2
+        )
+        ch_fastq = PARSEKRAKEN2.out.reads
+
+        // since we removed non Mp reads, pass everything with >0%
+        ch_checkmp = GET_MP_PERCENT.out.tsv
+                        .map {
+                            meta, tsv ->
+                            def file = tsv
+                                        .splitCsv( header:true, sep:"\t" )
+                            def percent = file.Percent_Mp[0] as Float
+                            return [ meta, percent ]
+                        }
+                        .branch {
+                            meta, percent ->
+                            pass: percent > 0
+                            fail: percent == 0
+                        }
+    } else {
+        // check if Mp percent is >90% to pass/fail samples
+        ch_checkmp = GET_MP_PERCENT.out.tsv
+                        .map {
+                            meta, tsv ->
+                            def file = tsv
+                                        .splitCsv( header:true, sep:"\t" )
+                            def percent = file.Percent_Mp[0] as Float
+                            return [ meta, percent ]
+                        }
+                        .branch {
+                            meta, percent ->
+                            pass: percent >= 90
+                            fail: percent < 90
+                        }
+
+    }
 
     //Merge Mp percent reports
-    ch_percent_mp = GET_MP_PERCENT.out.tsv
-                            .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
-                                meta, file -> file
-                            }
-                            .ifEmpty([])
+    // ch_percent_mp = GET_MP_PERCENT.out.tsv
+    //                         .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
+    //                             meta, file -> file
+    //                         }
+    //                         .ifEmpty([])
     
     ch_fastq = ch_fastq.join(ch_checkmp.pass)
                                 .map {
@@ -247,7 +273,10 @@ workflow PREPROCESSING {
     ds_stats            = ch_ds                                         // channel: [ downsampled_cov_depth.tsv ]
 
     reads               = ch_fastq                                      // channel: [ id: meta, [ reads ] ]
-    checkmp             = ch_checkmp.pass                               // channel: [ id: meta, ]
+
+    kraken_report       = KRAKEN2_KRAKEN2.out.report                    // channel: [ id: meta, report ]
+    percent_mp          = GET_MP_PERCENT.out.tsv                        // channel: [ id: meta, mp_report ]
+    checkmp             = ch_checkmp.pass                               // channel: [ id: meta, percent ]
 
     bam_bai             = ch_bam_bai                                    // channel: [ meta, bam, bai ]
 

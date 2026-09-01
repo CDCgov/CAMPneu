@@ -7,8 +7,8 @@ include { PREFETCH                    } from '../modules/local/prefetch/main'
 include { FASTERQDUMP                 } from '../modules/local/fasterqdump/main'
 include { PREPROCESSING               } from '../subworkflows/local/preprocess'
 include { PREPROCESSING as PREPROCESS } from '../subworkflows/local/preprocess'
-include { KRAKEN2_KRAKEN2             } from '../modules/nf-core/kraken2/kraken2/main'
-include { GET_MP_PERCENT              } from '../modules/local/mp_percent/main'
+// include { KRAKEN2_KRAKEN2             } from '../modules/nf-core/kraken2/kraken2/main'
+// include { GET_MP_PERCENT              } from '../modules/local/mp_percent/main'
 include { ASSEMBLY                    } from '../subworkflows/local/assembly'
 include { TYPING                      } from '../subworkflows/local/typing'
 include { MINIMAP2_INDEX              } from '../modules/nf-core/minimap2/index/main'
@@ -117,6 +117,7 @@ workflow CAMPNEU {
         )
         ch_versions = ch_versions.mix(PREPROCESSING.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(PREPROCESSING.out.json.collect{it[1]})
+        ch_multiqc_files = ch_multiqc_files.mix(PREPROCESSING.out.kraken_report.collect{it[1]})
 
         PREPROCESS (
             ch_only_fastq,
@@ -124,6 +125,8 @@ workflow CAMPNEU {
         )
         ch_versions = ch_versions.mix(PREPROCESS.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(PREPROCESS.out.json.collect{it[1]})
+        ch_multiqc_files = ch_multiqc_files.mix(PREPROCESS.out.kraken_report.collect{it[1]})
+
 
 
         // Merge fastp reports
@@ -188,13 +191,21 @@ workflow CAMPNEU {
         //                                 meta, reads, percent ->
         //                                 [ meta, reads ]
         //                             }
-        //only filtering this channel by avg depth (checked in preprocess) & Mp percent, not checking if corresponding assemblies passed
-        // ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai).join(ch_checkmp.pass)
-        //                             .map {
-        //                                 meta, bam, bai, percent ->
-        //                                 [ meta, bam, bai ]
-        //                             }
-        //                             .mix(ASSEMBLYALIGNMENT.out.bam_bai)
+
+        //Merge Mp percent reports //TODO: NEED TO FIX
+        ch_percent_mp = PREPROCESSING.out.percent_mp
+                                .collectFile(name:'Mp_report.tsv', storeDir:"${params.outdir}/reports/", keepHeader:true, cache:false){
+                                    meta, file -> file
+                                }
+                                .ifEmpty([])
+
+        //only filtering this channel by avg depth/breadth coverage & Mp percent, not checking if corresponding assemblies passed
+        ch_bam_bai = PREPROCESSING.out.bam_bai.mix(PREPROCESS.out.bam_bai)//.join(ch_checkmp.pass)
+                                    // .map {
+                                    //     meta, bam, bai, percent ->
+                                    //     [ meta, bam, bai ]
+                                    // }
+                                    .mix(ASSEMBLYALIGNMENT.out.bam_bai)
 
         // ch_reads_to_assemble = PREPROCESSING.out.reads.join(ch_checkmp.pass)
         //                             .map{
@@ -212,7 +223,8 @@ workflow CAMPNEU {
         // SUBWORKFLOW: Assembly & assembly QC
         //
         ASSEMBLY (
-            ch_reads_to_assemble,
+            //ch_reads_to_assemble,
+            ch_reads,
             ch_only_fasta
         )
         ch_multiqc_files = ch_multiqc_files.mix(ASSEMBLY.out.quast_results.collect{it[1]})
