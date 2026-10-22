@@ -1,5 +1,5 @@
 process SNIPPY_CORE {
-    label 'process_low_memory'
+    label 'process_low'
 
     container "https://depot.galaxyproject.org/singularity/snippy%3A4.6.0--0"
 

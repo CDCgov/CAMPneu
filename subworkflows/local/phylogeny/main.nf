@@ -70,20 +70,9 @@ workflow PHYLOGENY {
     REMOVE_REF (
         ch_clean
     )
-    ch_clean = REMOVE_REF.out.no_ref_aln
-                .map {
-                        aln ->
-                        [ [ id:"core_aln" ], aln ]
-                    }
     ch_versions = ch_versions.mix(REMOVE_REF.out.versions)
 
-    //
-    // MODULE: Compute SNP distances
-    //
-    SNPDISTS (
-        ch_clean
-    )
-    ch_versions = ch_versions.mix(SNPDISTS.out.versions)
+    ch_clean = REMOVE_REF.out.no_ref_aln
 
     if (params.gubbins){
         //
@@ -92,9 +81,23 @@ workflow PHYLOGENY {
         GUBBINS (
             ch_clean
         )
-        ch_versions = ch_versions.mix(GUBBINS.out.versions)
+        //ch_versions = ch_versions.mix(GUBBINS.out.versions)
         ch_clean = GUBBINS.out.phylip
     }
+
+    ch_clean = ch_clean
+                .map {
+                        aln ->
+                        [ [ id:"core_aln" ], aln ]
+                    }
+
+    //
+    // MODULE: Compute SNP distances
+    //
+    SNPDISTS (
+        ch_clean
+    )
+    ch_versions = ch_versions.mix(SNPDISTS.out.versions)
 
     //
     // Phylogenetic analysis with RAxML-NG (output Newick tree)
