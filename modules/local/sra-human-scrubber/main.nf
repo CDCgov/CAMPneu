@@ -2,7 +2,9 @@ process SRA_HUMAN_SCRUBBER {
     tag "$meta.id"
     label 'process_medium'
 
-    container "library://kmorin/campneu/sra-human-scrubber:2.2.1"
+    container "${ workflow.containerEngine in ['singularity', 'apptainer'] && !task.ext.singularity_pull_docker_container ?
+        'oras://ghcr.io/kitkatm16/kmorin_campneu_sra-human-scrubber:2.2.1' :
+        'ghcr.io/kitkatm16/sra-human-scrubber-docker:2.2.1-r1' }"
 
     input:
     tuple val(meta), path(reads)
